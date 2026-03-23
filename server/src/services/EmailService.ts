@@ -1,39 +1,17 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY || 're_cRiyep3X_C2rhJtxonkvjgP33Bb3V8nSR');
 
 export class EmailService {
-    private static transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS?.replace(/\s/g, ''),
-        },
-        connectionTimeout: 3000, // 3 seconds timeout to fail fast on Render free tier
-        greetingTimeout: 3000,
-        socketTimeout: 3000,
-    });
-
     static async sendShareLink(email: string, link: string, senderName: string, fileName: string) {
-        console.log('[DEBUG] Sending Share Link (Updated Template)');
-        // If credentials are not provided, fall back to logging (to avoid crashes)
-        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-            console.warn('[EMAIL SERVICE] SMTP credentials not found. Logging email instead.');
-            console.log(`
-            ====================================================
-            [EMAIL FALLBACK] To: ${email}
-            Subject: ${senderName} shared a secure file with you
-            Link: ${link}
-            ====================================================
-            `);
-            return false;
-        }
+        console.log('[DEBUG] Sending Share Link via Resend');
 
-        const mailOptions = {
-            from: `"SecureShare Notification" <${process.env.SMTP_USER}>`,
-            to: email,
-            subject: `${senderName} shared a secure file with you`,
-            html: `
+        try {
+            const data = await resend.emails.send({
+                from: 'SecureShare Notification <onboarding@resend.dev>',
+                to: email, // Must be your verified Resend email address
+                subject: `${senderName} shared a secure file with you`,
+                html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
                     <h2 style="color: #0f172a; margin-top: 0;">Secure File Sharing</h2>
                     <p style="color: #475569; line-height: 1.6;">
@@ -53,38 +31,24 @@ export class EmailService {
                      This is an automated notification from SecureShare.
                 </p>
             `,
-        };
-
-        try {
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log(`[EMAIL SERVICE] Email sent: ${info.messageId}`);
+            });
+            console.log(`[EMAIL SERVICE] Email sent via Resend:`, data);
             return true;
         } catch (error: any) {
-            console.error('[EMAIL SERVICE] Error sending email:', error);
-            if (error.response) console.error('[EMAIL SERVICE] SMTP Response:', error.response);
+            console.error('[EMAIL SERVICE] Error sending email via Resend:', error);
             return false;
         }
     }
 
     static async sendOtpEmail(email: string, otp: number, userName: string) {
-        // Fallback if credentials not provided
-        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-            console.warn('[EMAIL SERVICE] SMTP credentials not found. Logging OTP instead.');
-            console.log(`
-            ====================================================
-            [OTP EMAIL FALLBACK] To: ${email}
-            Subject: SecureShare Login OTP
-            OTP: ${otp}
-            ====================================================
-            `);
-            return false;
-        }
+        console.log('[DEBUG] Sending OTP via Resend');
 
-        const mailOptions = {
-            from: `"SecureShare Notification" <${process.env.SMTP_USER}>`,
-            to: email,
-            subject: 'SecureShare Login OTP',
-            html: `
+        try {
+            const data = await resend.emails.send({
+                from: 'SecureShare Notification <onboarding@resend.dev>',
+                to: email, // Must be your verified Resend email address
+                subject: 'SecureShare Login OTP',
+                html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
                     <h2 style="color: #0f172a; margin-top: 0;">SecureShare Login Verification</h2>
                     <p style="color: #475569; line-height: 1.6;">
@@ -107,15 +71,11 @@ export class EmailService {
                     </p>
                 </div>
             `,
-        };
-
-        try {
-            const info = await this.transporter.sendMail(mailOptions);
-            console.log(`[EMAIL SERVICE] OTP Email sent: ${info.messageId}`);
+            });
+            console.log(`[EMAIL SERVICE] OTP Email sent via Resend:`, data);
             return true;
         } catch (error: any) {
-            console.error('[EMAIL SERVICE] Error sending OTP email:', error);
-            if (error.response) console.error('[EMAIL SERVICE] SMTP Response:', error.response);
+            console.error('[EMAIL SERVICE] Error sending OTP email via Resend:', error);
             return false;
         }
     }
