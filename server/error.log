@@ -1,0 +1,14 @@
+PrismaClientKnownRequestError: 
+Invalid `prisma.user.create()` invocation in
+C:\Users\sriha\OneDrive\documents\capstone project\final project\server\recreate_user.js:14:40
+
+  11 const hashedPassword = await bcrypt.hash(password, 10);
+  12 
+  13 console.log('Creating user...');
+→ 14 const user = await prisma.user.create(
+Unique constraint failed on the fields: (`email`)
+    at In.handleRequestError (C:\Users\sriha\OneDrive\documents\capstone project\final project\server\node_modules\@prisma\client\runtime\library.js:123:6854)
+    at In.handleAndLogRequestError (C:\Users\sriha\OneDrive\documents\capstone project\final project\server\node_modules\@prisma\client\runtime\library.js:123:6188)
+    at In.request (C:\Users\sriha\OneDrive\documents\capstone project\final project\server\node_modules\@prisma\client\runtime\library.js:123:5896)
+    at async l (C:\Users\sriha\OneDrive\documents\capstone project\final project\server\node_modules\@prisma\client\runtime\library.js:128:10871)
+    at async main (C:\Users\sriha\OneDrive\documents\capstone project\final project\server\recreate_user.js:14:22)

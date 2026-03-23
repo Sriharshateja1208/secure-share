@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  role           String     @default("USER")
+  fullname       String
+  surname        String   // Kept for backward compat or specific surname challenges
+  dob            DateTime
+  pan            String   
+  aadhaar        String
+  password       String   @map("password_hash") // Map to existing column
+  totp_secret    String?  // Made optional as we might not use it anymore
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  sharesReceived Share[]  @relation("ReceivedShares")
+  ownedFiles     FileRecord[] @relation("OwnedFiles")
+  accessLogs     AccessLog[]
+}
+
+model FileRecord {
+  id           String   @id @default(uuid())
+  filename     String
+  storage_path String
+  wrapped_key  Bytes
+  createdAt    DateTime @default(now())
+  owner        User     @relation("OwnedFiles", fields: [ownerId], references: [id])
+  ownerId      String
+  shares       Share[]
+}
+
+model Share {
+  id             String   @id @default(uuid())
+  file           FileRecord @relation(fields: [file_id], references: [id])
+  file_id        String
+  target_user    User     @relation("ReceivedShares", fields: [target_user_id], references: [id])
+  target_user_id String
+  share_token    String   @unique
+  attempts_remaining Int      @default(5)
+  expires_at     DateTime
+  createdAt      DateTime @default(now())
+  challenges     Challenge[]
+}
+
+model Challenge {
+  id            String   @id @default(uuid())
+  share         Share    @relation(fields: [share_id], references: [id])
+  share_id      String
+  question_text String
+  nonce         String
+  answer_hmac   String
+  fingerprint   String
+  status        String   // ACTIVE, USED, INVALID
+  expires_at    DateTime
+  createdAt     DateTime @default(now())
+}
+
+model DownloadToken {
+  token      String   @id
+  share_id   String
+  user_id    String
+  expires_at DateTime
+  used       Boolean  @default(false)
+}
+
+model AccessLog {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [user_id], references: [id])
+  user_id      String
+  share_id     String?
+  challenge_id String?
+  ip           String
+  success      Boolean
+  action       String   // LOGIN, CHALLENGE_VERIFY, DOWNLOAD
+  timestamp    DateTime @default(now())
+}
