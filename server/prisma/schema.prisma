@@ -33,16 +33,16 @@ model FileRecord {
   storage_path String
   wrapped_key  Bytes
   createdAt    DateTime @default(now())
-  owner        User     @relation("OwnedFiles", fields: [ownerId], references: [id])
+  owner        User     @relation("OwnedFiles", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId      String
   shares       Share[]
 }
 
 model Share {
   id             String   @id @default(uuid())
-  file           FileRecord @relation(fields: [file_id], references: [id])
+  file           FileRecord @relation(fields: [file_id], references: [id], onDelete: Cascade)
   file_id        String
-  target_user    User     @relation("ReceivedShares", fields: [target_user_id], references: [id])
+  target_user    User     @relation("ReceivedShares", fields: [target_user_id], references: [id], onDelete: Cascade)
   target_user_id String
   share_token    String   @unique
   attempts_remaining Int      @default(5)
@@ -53,7 +53,7 @@ model Share {
 
 model Challenge {
   id            String   @id @default(uuid())
-  share         Share    @relation(fields: [share_id], references: [id])
+  share         Share    @relation(fields: [share_id], references: [id], onDelete: Cascade)
   share_id      String
   question_text String
   nonce         String
@@ -74,7 +74,7 @@ model DownloadToken {
 
 model AccessLog {
   id           String   @id @default(uuid())
-  user         User     @relation(fields: [user_id], references: [id])
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id      String
   share_id     String?
   challenge_id String?
