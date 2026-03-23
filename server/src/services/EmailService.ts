@@ -9,6 +9,9 @@ export class EmailService {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS?.replace(/\s/g, ''),
         },
+        connectionTimeout: 3000, // 3 seconds timeout to fail fast on Render free tier
+        greetingTimeout: 3000,
+        socketTimeout: 3000,
     });
 
     static async sendShareLink(email: string, link: string, senderName: string, fileName: string) {
