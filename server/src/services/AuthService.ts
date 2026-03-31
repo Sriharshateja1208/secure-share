@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     static async register(data: any) {
-        const { email, password, fullname, surname, dob, pan, aadhaar } = data;
+        const { email, password, fullname, surname, dob, pan, aadhaar, personal_q1, personal_a1, personal_q2, personal_a2 } = data;
 
         const existing = await prisma.user.findUnique({ where: { email } });
         if (existing) {
@@ -51,6 +51,10 @@ export class AuthService {
                 dob: new Date(dob),
                 pan,
                 aadhaar,
+                personal_q1,
+                personal_a1,
+                personal_q2,
+                personal_a2,
                 password: hashedPassword,
                 totp_secret: '',
             }

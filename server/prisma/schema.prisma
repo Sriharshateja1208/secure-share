@@ -18,6 +18,10 @@ model User {
   dob            DateTime
   pan            String   
   aadhaar        String
+  personal_q1    String?
+  personal_a1    String?
+  personal_q2    String?
+  personal_a2    String?
   password       String   @map("password_hash") // Map to existing column
   totp_secret    String?  // Made optional as we might not use it anymore
   createdAt      DateTime @default(now())

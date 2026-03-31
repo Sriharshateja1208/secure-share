@@ -6,6 +6,10 @@ interface UserKYC {
     dob: Date;
     pan: string;
     aadhaar: string;
+    personal_q1?: string | null;
+    personal_a1?: string | null;
+    personal_q2?: string | null;
+    personal_a2?: string | null;
 }
 
 export class ChallengeEngine {
@@ -26,6 +30,13 @@ export class ChallengeEngine {
             "birth month": dobMonth,
             "birth day": dobDay
         };
+
+        if (profile.personal_q1 && profile.personal_a1) {
+            fields[`answer to '${profile.personal_q1}'`] = profile.personal_a1;
+        }
+        if (profile.personal_q2 && profile.personal_a2) {
+            fields[`answer to '${profile.personal_q2}'`] = profile.personal_a2;
+        }
 
         const ruleParts: string[] = [];
         const answerParts: string[] = [];

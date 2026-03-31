@@ -12,8 +12,19 @@ export default function Register() {
     confirmPassword: '',
     dob: '',
     pan: '',
-    aadhaar: ''
+    aadhaar: '',
+    personal_q1: '',
+    personal_a1: '',
+    personal_q2: '',
+    personal_a2: ''
   });
+
+  const PERSONAL_QUESTIONS = [
+    "What is your favorite color?",
+    "What is your favorite movie?",
+    "What is your childhood nickname?",
+    "What is your favorite food?"
+  ];
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
@@ -160,6 +171,43 @@ export default function Register() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Aadhaar (12 digits)</label>
                 <input name="aadhaar" required className="input" placeholder="123456789012" onChange={handleChange} />
+              </div>
+
+              {/* Security Questions */}
+              <div className="sm:col-span-2 mt-2 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col gap-4">
+                <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">Security Questions</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Question 1</label>
+                    <select name="personal_q1" required value={formData.personal_q1} onChange={handleChange as any} className="input">
+                      <option value="">Select a question</option>
+                      {PERSONAL_QUESTIONS.map(q => (
+                        <option key={q} value={q} disabled={q === formData.personal_q2}>{q}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Answer 1</label>
+                    <input name="personal_a1" required className="input" placeholder="Your answer" onChange={handleChange} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Question 2</label>
+                    <select name="personal_q2" required value={formData.personal_q2} onChange={handleChange as any} className="input">
+                      <option value="">Select a question</option>
+                      {PERSONAL_QUESTIONS.map(q => (
+                        <option key={q} value={q} disabled={q === formData.personal_q1}>{q}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Answer 2</label>
+                    <input name="personal_a2" required className="input" placeholder="Your answer" onChange={handleChange} />
+                  </div>
+                </div>
               </div>
 
               <div className="sm:col-span-2 pt-2">

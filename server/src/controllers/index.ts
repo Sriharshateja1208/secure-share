@@ -344,7 +344,11 @@ export class ChallengeController {
                 fullname: targetUser.fullname,
                 dob: targetUser.dob,
                 pan: targetUser.pan,
-                aadhaar: targetUser.aadhaar
+                aadhaar: targetUser.aadhaar,
+                personal_q1: (targetUser as any).personal_q1,
+                personal_a1: (targetUser as any).personal_a1,
+                personal_q2: (targetUser as any).personal_q2,
+                personal_a2: (targetUser as any).personal_a2
             };
 
             // @ts-ignore
