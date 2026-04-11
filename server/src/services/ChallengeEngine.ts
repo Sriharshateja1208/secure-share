@@ -3,6 +3,7 @@ import crypto from 'crypto';
 
 interface UserKYC {
     fullname: string;
+    surname?: string;
     dob: Date;
     pan: string;
     aadhaar: string;
@@ -10,6 +11,8 @@ interface UserKYC {
     personal_a1?: string | null;
     personal_q2?: string | null;
     personal_a2?: string | null;
+    formula_op?: string;
+    formula_num?: number;
 }
 
 export class ChallengeEngine {
@@ -30,6 +33,10 @@ export class ChallengeEngine {
             "birth month": dobMonth,
             "birth day": dobDay
         };
+
+        if (profile.surname) {
+            fields["surname"] = profile.surname;
+        }
 
         if (profile.personal_q1 && profile.personal_a1) {
             fields[`answer to '${profile.personal_q1}'`] = profile.personal_a1;
@@ -76,16 +83,47 @@ export class ChallengeEngine {
             answerParts.push(partValue);
         }
 
-        // question = "To unlock the file, please enter " + ", followed by ".join(sentence_parts) + "."
-        const questionText = "To unlock the file, please enter " + ruleParts.join(", followed by ") + ".";
-
-        // answer = "".join(answer_parts)
-        const answer = answerParts.join("");
+        let questionText = "To unlock the file, please enter " + ruleParts.join(", followed by ") + ".";
+        
+        const rawAnswer = answerParts.join("");
+        
+        // Apply Secret Formula
+        const op = profile.formula_op || 'shift';
+        const num = profile.formula_num || 3;
+        const transformedAnswer = ChallengeEngine.applyFormula(rawAnswer, op, num);
+        
+        // Adjust wording if formula is applied
+        questionText += ` Finally, apply your Secret Formula.`;
 
         return {
             questionText,
-            answer // Note: Controller should hash this immediately and not store it raw
+            answer: transformedAnswer // Note: Controller should hash this immediately and not store it raw
         };
+    }
+
+    static applyFormula(str: string, op: string, num: number): string {
+        str = str.toLowerCase();
+        
+        if (op === 'reverse') return str.split('').reverse().join('');
+        
+        if (op === 'shift') {
+            return str.split('').map(c => {
+                if (c >= 'a' && c <= 'z') return String.fromCharCode(((c.charCodeAt(0) - 97 + num) % 26) + 97);
+                if (c >= '0' && c <= '9') return String((parseInt(c) + num) % 10);
+                return c;
+            }).join('');
+        }
+        
+        if (op === 'sum') {
+            const s = str.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+            return String((s + num) % 100).padStart(2, '0');
+        }
+        
+        if (op === 'count') {
+            return String(str.length + num);
+        }
+        
+        return str;
     }
 
     // Helper to generate HMAC for the answer (SHA-256)

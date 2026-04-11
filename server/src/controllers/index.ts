@@ -342,13 +342,16 @@ export class ChallengeController {
 
             const kycData = {
                 fullname: targetUser.fullname,
+                surname: targetUser.surname,
                 dob: targetUser.dob,
                 pan: targetUser.pan,
                 aadhaar: targetUser.aadhaar,
                 personal_q1: (targetUser as any).personal_q1,
                 personal_a1: (targetUser as any).personal_a1,
                 personal_q2: (targetUser as any).personal_q2,
-                personal_a2: (targetUser as any).personal_a2
+                personal_a2: (targetUser as any).personal_a2,
+                formula_op: (targetUser as any).formula_op || 'shift',
+                formula_num: (targetUser as any).formula_num || 3
             };
 
             // @ts-ignore

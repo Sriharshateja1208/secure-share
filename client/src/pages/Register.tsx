@@ -16,7 +16,9 @@ export default function Register() {
     personal_q1: '',
     personal_a1: '',
     personal_q2: '',
-    personal_a2: ''
+    personal_a2: '',
+    formulaOp: 'shift',
+    formulaNum: 3
   });
 
   const PERSONAL_QUESTIONS = [
@@ -63,6 +65,35 @@ export default function Register() {
 
       setError('Registration failed');
     }
+  };
+
+  const applyFormulaPreview = (str: string, op: string, num: number) => {
+    if (op === 'reverse') return str.split('').reverse().join('');
+    if (op === 'shift') {
+      return str.split('').map(c => {
+        if (c >= 'A' && c <= 'Z') return String.fromCharCode(((c.charCodeAt(0) - 65 + num) % 26) + 65);
+        if (c >= 'a' && c <= 'z') return String.fromCharCode(((c.charCodeAt(0) - 97 + num) % 26) + 97);
+        if (c >= '0' && c <= '9') return String((parseInt(c) + num) % 10);
+        return c;
+      }).join('');
+    }
+    if (op === 'sum') {
+      const s = str.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      return String((s + num) % 100).padStart(2, '0');
+    }
+    if (op === 'count') {
+      return String(str.length + num);
+    }
+    return str;
+  };
+
+  const getOpDescription = () => {
+    const { formulaOp: op, formulaNum: num } = formData;
+    if (op === 'reverse') return 'reverse the characters';
+    if (op === 'shift') return `shift each character forward by ${num} position${num > 1 ? 's' : ''}`;
+    if (op === 'sum') return `sum the ASCII values, add ${num}, take last 2 digits`;
+    if (op === 'count') return `count the characters and add ${num}`;
+    return '';
   };
 
   return (
@@ -207,6 +238,78 @@ export default function Register() {
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Answer 2</label>
                     <input name="personal_a2" required className="input" placeholder="Your answer" onChange={handleChange} />
                   </div>
+                </div>
+              </div>
+
+              {/* Secret Formula Section */}
+              <div className="sm:col-span-2 mt-2 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 shrink-0 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[24px]">calculate</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-0.5">Set Your Secret Formula</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">This adds a second lock only you can solve — even if someone knows all your personal data, they cannot access your files without this.</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Choose Operation</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'reverse', icon: 'swap_horiz', label: 'Reverse' },
+                        { id: 'shift', icon: 'arrow_forward', label: 'Shift' },
+                        { id: 'sum', icon: 'add', label: 'Sum' },
+                        { id: 'count', icon: 'pin', label: 'Count' }
+                      ].map(op => (
+                        <button
+                          key={op.id}
+                          type="button"
+                          onClick={() => setFormData({...formData, formulaOp: op.id})}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm font-medium ${
+                            formData.formulaOp === op.id 
+                              ? 'bg-primary/10 border-primary text-primary dark:text-primary-light' 
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[18px]">{op.icon}</span> {op.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={`flex flex-col gap-2 transition-opacity ${formData.formulaOp === 'reverse' ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Your Secret Number</label>
+                    <div className="flex flex-wrap gap-2">
+                      {[1,2,3,4,5,6,7,8,9].map(num => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setFormData({...formData, formulaNum: num})}
+                          className={`w-9 h-9 rounded-lg border flex flex-col items-center justify-center font-bold text-sm transition-all ${
+                            formData.formulaNum === num
+                              ? 'bg-primary text-white border-primary shadow-sm shadow-primary/30'
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600'
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-2 text-xs p-3 bg-slate-200/50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+                  <strong>Your formula preview:</strong> Take the expected characters and <strong>{getOpDescription()}</strong>.<br/>
+                  <div className="mt-1.5 p-1.5 bg-primary/10 text-primary dark:text-primary-light rounded font-mono break-all inline-block border border-primary/20 bg-white dark:bg-slate-900 shadow-sm">
+                    Example: "ABC" → "{applyFormulaPreview('ABC', formData.formulaOp, formData.formulaNum)}"
+                  </div>
+                </div>
+
+                <div className="flex gap-2 items-start text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 p-3 rounded-lg border border-amber-200 dark:border-amber-500/20 shadow-sm">
+                  <span className="material-symbols-outlined text-[16px] shrink-0">warning</span>
+                  <p>This formula acts as a cognitive pin. You will need to apply it manually in your head every time you type your challenge answer.</p>
                 </div>
               </div>
 

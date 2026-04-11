@@ -22,6 +22,8 @@ model User {
   personal_a1    String?
   personal_q2    String?
   personal_a2    String?
+  formula_op     String     @default("shift")
+  formula_num    Int        @default(3)
   password       String   @map("password_hash") // Map to existing column
   totp_secret    String?  // Made optional as we might not use it anymore
   createdAt      DateTime @default(now())
