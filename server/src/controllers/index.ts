@@ -223,7 +223,8 @@ export class FileController {
             });
 
             // Send Email Notification
-            const shareLink = `http://localhost:5173/s/${shareToken}`;
+            const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            const shareLink = `${baseUrl}/s/${shareToken}`;
             // @ts-ignore
             await EmailService.sendShareLink(targetEmail, shareLink, sender.fullname, share.file.filename);
 
