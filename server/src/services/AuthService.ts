@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     static async register(data: any) {
-        const { email, password, fullname, surname, dob, pan, aadhaar, personal_q1, personal_a1, personal_q2, personal_a2, formula_op, formula_num } = data;
+        const { email, password, fullname, surname, dob, pan, aadhaar, personal_q1, personal_a1, personal_q2, personal_a2, formulaOp, formulaNum } = data;
 
         const existing = await prisma.user.findUnique({ where: { email } });
         if (existing) {
@@ -55,8 +55,8 @@ export class AuthService {
                 personal_a1,
                 personal_q2,
                 personal_a2,
-                formula_op,
-                formula_num,
+                formula_op: formulaOp || 'shift',
+                formula_num: formulaNum || 3,
                 password: hashedPassword,
                 totp_secret: '',
             }
