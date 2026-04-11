@@ -25,7 +25,7 @@ export class ChallengeEngine {
         const pan = profile.pan;
         const aadhaar = profile.aadhaar;
 
-        const fields: { [key: string]: string } = {
+        const generalFields: { [key: string]: string } = {
             "full name": name,
             "PAN number": pan,
             "Aadhaar number": aadhaar,
@@ -34,27 +34,48 @@ export class ChallengeEngine {
             "birth day": dobDay
         };
 
-        if (profile.surname) {
-            fields["surname"] = profile.surname;
-        }
+        if (profile.surname) { generalFields["surname"] = profile.surname; }
 
+        const personalFields: { [key: string]: string } = {};
         if (profile.personal_q1 && profile.personal_a1) {
-            fields[`answer to '${profile.personal_q1}'`] = profile.personal_a1;
+            personalFields[`answer to '${profile.personal_q1}'`] = profile.personal_a1;
         }
         if (profile.personal_q2 && profile.personal_a2) {
-            fields[`answer to '${profile.personal_q2}'`] = profile.personal_a2;
+            personalFields[`answer to '${profile.personal_q2}'`] = profile.personal_a2;
         }
 
         const ruleParts: string[] = [];
         const answerParts: string[] = [];
-        const numParts = 3; // Default parts
+        const numParts = 3;
 
-        const fieldKeys = Object.keys(fields);
+        const generalKeys = Object.keys(generalFields);
+        const personalKeys = Object.keys(personalFields);
+        
+        let selectedFields: { name: string, value: string }[] = [];
 
-        for (let i = 0; i < numParts; i++) {
-            // secrets.choice equivalent
-            const fieldName = fieldKeys[Math.floor(Math.random() * fieldKeys.length)];
-            const fieldValue = fields[fieldName];
+        // Guarantee at least 1 personal question if they exist
+        if (personalKeys.length > 0) {
+            const pKey = personalKeys[Math.floor(Math.random() * personalKeys.length)];
+            selectedFields.push({ name: pKey, value: personalFields[pKey] });
+            
+            // Pick remaining from general fields
+            for (let i = 0; i < numParts - 1; i++) {
+                const gKey = generalKeys[Math.floor(Math.random() * generalKeys.length)];
+                selectedFields.push({ name: gKey, value: generalFields[gKey] });
+            }
+        } else {
+            for (let i = 0; i < numParts; i++) {
+                const gKey = generalKeys[Math.floor(Math.random() * generalKeys.length)];
+                selectedFields.push({ name: gKey, value: generalFields[gKey] });
+            }
+        }
+
+        // Shuffle the selected fields so personal question isn't always first
+        selectedFields = selectedFields.sort(() => Math.random() - 0.5);
+
+        for (const field of selectedFields) {
+            const fieldName = field.name;
+            const fieldValue = field.value;
 
             let partDesc = "";
             let partValue = "";

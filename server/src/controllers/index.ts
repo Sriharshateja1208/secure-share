@@ -367,7 +367,7 @@ export class ChallengeController {
                     answer_hmac: hmac,
                     fingerprint: crypto.randomBytes(4).toString('hex'),
                     status: 'ACTIVE',
-                    expires_at: new Date(Date.now() + 120 * 1000) // 120s
+                    expires_at: new Date(Date.now() + 300 * 1000) // 300s
                 }
             });
 
@@ -376,7 +376,7 @@ export class ChallengeController {
             res.json({
                 challengeId: challenge.id,
                 question: challengeData.questionText,
-                expiresIn: 120,
+                expiresIn: 300,
                 // @ts-ignore
                 attemptsRemaining: share.attempts_remaining
             });
