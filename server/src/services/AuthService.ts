@@ -42,6 +42,10 @@ export class AuthService {
             throw new Error('User already exists');
         }
 
+        const secret = authenticator.generateSecret();
+        const otpauth = authenticator.keyuri(email, 'SecureShare', secret);
+        const qrCodeUrl = await qrcode.toDataURL(otpauth);
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await prisma.user.create({
             data: {
@@ -58,13 +62,13 @@ export class AuthService {
                 formula_op: formulaOp || 'shift',
                 formula_num: formulaNum || 3,
                 password: hashedPassword,
-                totp_secret: '',
+                totp_secret: secret,
             }
         });
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
         // @ts-ignore
-        return { token, user: { id: user.id, name: user.fullname, email: user.email } };
+        return { token, user: { id: user.id, name: user.fullname, email: user.email }, qrCodeUrl };
     }
 
     static async login(email: string, password: string) {

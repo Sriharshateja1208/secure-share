@@ -9,6 +9,8 @@ import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+// @ts-ignore
+import { authenticator } from 'otplib';
 
 const prisma = new PrismaClient();
 
@@ -58,28 +60,11 @@ export class AuthController {
                 });
             }
 
-            // Non-admin: Generate and send OTP
-            const otp = OtpService.generateOtp(user.id);
-            const emailSent = await EmailService.sendOtpEmail(email, otp, user.fullname);
-
-            if (emailSent) {
-                await AuditService.log(user.id, 'OTP_SENT', true, { ip });
-                return res.json({
-                    requiresOtp: true,
-                    userId: user.id,
-                    message: 'OTP sent to your email'
-                });
-            }
-
-            await AuditService.log(user.id, 'OTP_SENT', false, { ip, reason: 'email_failed' });
-
-            // ALWAYS return OTP in response if email fails, to allow login in dev/demo environments without SMTP
-            console.log(`[DEBUG] OTP for ${email}: ${otp}`);
+            // Non-admin: Trigger TOTP verification
             return res.json({
                 requiresOtp: true,
                 userId: user.id,
-                otp, // Expose OTP for testing/demo
-                message: 'OTP generated (Email failed - check console/network)'
+                message: 'Please open Google Authenticator and enter your 6-digit code'
             });
         } catch (err: any) {
             console.error('[ERROR] Login failed', err.message);
@@ -96,21 +81,17 @@ export class AuthController {
                 throw new Error('User ID and OTP are required');
             }
 
-            const parsedOtp = parseInt(otp, 10);
-            if (Number.isNaN(parsedOtp)) {
-                throw new Error('OTP must be a 6-digit number');
-            }
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user) throw new Error('User not found');
+            if (!user.totp_secret) throw new Error('Google Authenticator not configured for this account. Create a new account.');
 
-            const isValid = OtpService.verifyOtp(userId, parsedOtp);
+            const stringOtp = String(otp).trim().padStart(6, '0');
+            const isValid = authenticator.verify({ token: stringOtp, secret: user.totp_secret });
 
             if (!isValid) {
                 await AuditService.log(userId, 'OTP_VERIFY', false, { ip: req.ip });
-                throw new Error('Invalid or expired OTP');
+                throw new Error('Invalid or expired Authentication Code');
             }
-
-            // OTP verified, issue JWT
-            const user = await prisma.user.findUnique({ where: { id: userId } });
-            if (!user) throw new Error('User not found');
 
             const token = jwt.sign(
                 { userId: user.id, email: user.email },
