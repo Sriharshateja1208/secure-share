@@ -6,8 +6,8 @@ import { authApi } from '../api';
 export default function Login() {
     const { setAuth } = useAuth();
     const navigate = useNavigate();
-    const [email, setEmail] = useState('admin@secure.com');
-    const [password, setPassword] = useState('password123');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [requiresOtp, setRequiresOtp] = useState(false);
