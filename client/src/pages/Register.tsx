@@ -30,6 +30,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -48,8 +49,12 @@ export default function Register() {
     const { confirmPassword, ...dataToSend } = formData;
 
     try {
-      await authApi.register(dataToSend);
-      navigate('/login');
+      const resp = await authApi.register(dataToSend);
+      if (resp.data.qrCodeUrl) {
+        setQrCodeUrl(resp.data.qrCodeUrl);
+      } else {
+        navigate('/login');
+      }
     } catch (err: any) {
       const apiMsg = err?.response?.data?.error || err?.response?.data?.message;
       if (apiMsg) {
@@ -127,13 +132,32 @@ export default function Register() {
           </div>
 
           <div className="p-6 flex flex-col gap-5">
-            {error && (
-              <div className="bg-red-500/10 text-red-600 dark:text-red-300 border border-red-500/30 p-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
+            {qrCodeUrl ? (
+                <div className="flex flex-col items-center gap-4 py-8 animate-fade-in">
+                    <div className="h-12 w-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-2">
+                        <span className="material-symbols-outlined text-[28px]">check_circle</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">Scan with Google Authenticator</h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-center text-sm px-4">
+                        Scan this QR code using Google Authenticator, Authy, or any supported app to set up your 2FA. You will need it to log in.
+                    </p>
+                    <img src={qrCodeUrl} alt="Google Authenticator QR Code" className="w-56 h-56 border border-slate-200 rounded-xl shadow-sm p-2 bg-white" />
+                    <button 
+                        onClick={() => navigate('/login')}
+                        className="mt-4 px-8 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors shadow-sm"
+                    >
+                        I have scanned the code
+                    </button>
+                </div>
+            ) : (
+                <>
+                {error && (
+                  <div className="bg-red-500/10 text-red-600 dark:text-red-300 border border-red-500/30 p-3 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
 
-            <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={handleSubmit}>
+                <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={handleSubmit}>
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">First Name</label>
                 <input name="fullname" required className="input" onChange={handleChange} />
@@ -319,6 +343,8 @@ export default function Register() {
                 </button>
               </div>
             </form>
+            </>
+          )}
           </div>
 
           <div className="sm:hidden px-6 pb-6 text-center">

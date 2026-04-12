@@ -10,7 +10,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 // @ts-ignore
-import { authenticator } from 'otplib';
+import { verifySync } from 'otplib';
 
 const prisma = new PrismaClient();
 
@@ -86,7 +86,7 @@ export class AuthController {
             if (!user.totp_secret) throw new Error('Google Authenticator not configured for this account. Create a new account.');
 
             const stringOtp = String(otp).trim().padStart(6, '0');
-            const isValid = authenticator.verify({ token: stringOtp, secret: user.totp_secret });
+            const isValid = verifySync({ token: stringOtp, secret: user.totp_secret });
 
             if (!isValid) {
                 await AuditService.log(userId, 'OTP_VERIFY', false, { ip: req.ip });

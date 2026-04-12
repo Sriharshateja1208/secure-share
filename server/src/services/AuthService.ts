@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 // @ts-ignore
-import { authenticator } from 'otplib';
+import { generateSecret, generateURI } from 'otplib';
 // @ts-ignore
 import qrcode from 'qrcode';
 
@@ -42,8 +42,8 @@ export class AuthService {
             throw new Error('User already exists');
         }
 
-        const secret = authenticator.generateSecret();
-        const otpauth = authenticator.keyuri(email, 'SecureShare', secret);
+        const secret = generateSecret({ length: 20 });
+        const otpauth = generateURI({ secret, label: email, issuer: 'SecureShare' });
         const qrCodeUrl = await qrcode.toDataURL(otpauth);
 
         const hashedPassword = await bcrypt.hash(password, 10);
