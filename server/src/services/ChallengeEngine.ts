@@ -116,6 +116,14 @@ export class ChallengeEngine {
         // Adjust wording if formula is applied
         questionText += ` Finally, apply your Secret Formula.`;
 
+        // DEMO BYPASS: Log the exact answer to the terminal so the user can easily pass
+        console.log(`\n[CHALLENGE DEBUG] ----------------------------------`);
+        console.log(`[CHALLENGE DEBUG] Target User:     ${profile.fullname}`);
+        console.log(`[CHALLENGE DEBUG] Raw Answer:      ${rawAnswer}`);
+        console.log(`[CHALLENGE DEBUG] Formula Applied: ${op} ${op === 'shift' || op === 'sum' ? `by ${num}` : ''}`);
+        console.log(`[CHALLENGE DEBUG] EXACT ANSWER:    ${transformedAnswer}`);
+        console.log(`[CHALLENGE DEBUG] ----------------------------------\n`);
+
         return {
             questionText,
             answer: transformedAnswer // Note: Controller should hash this immediately and not store it raw
